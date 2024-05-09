@@ -1,6 +1,6 @@
 # Fixed Buffer Memory Allocator
 
-My (First Try) impelementation of Fixed Buffer Memory Allocator in C.
+My (First Try) implementation of Fixed Buffer Memory Allocator in C.
 
 
 ## How it works?
