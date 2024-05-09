@@ -15,7 +15,7 @@
  */
 
 // Set this constant to 1 to enable logging
-#define BALLOC_DEBUG    0
+#define BALLOC_DEBUG    1
 
 // Store pointer metadata (it's size).
 // This will take a size of `size_t` for each pointer.
@@ -63,15 +63,13 @@ void balloc_hexdump(BuffAlloc *ba);
 
 void balloc_free(BuffAlloc *ba);
 
-
 #if BALLOC_PTR_MD
 void balloc_free_ptr(void *p);
+#endif // BALLOC_PTR_MD
 
 void *balloc_memset(void *p, long c, size_t n);
 
 void *balloc_memmove(void *p, const void *s, size_t n);
-#endif // BALLOC_PTR_MD
-
 
 
 #endif // BALLOC_H

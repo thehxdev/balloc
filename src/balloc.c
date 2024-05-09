@@ -88,22 +88,32 @@ void balloc_free_ptr(void *p) {
 
 
 void *balloc_memset(void *p, long c, size_t n) {
+#if BALLOC_PTR_MD
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
 
     if (n > size)
         return NULL;
+#else
+    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
+    BALLOC_LOG_ERR("%s\n", "Define BALLOC_PTR_MD to store pointer size for safe memset operation.");
+#endif // BALLOC_PTR_MD
 
     return memset(p, c, n);
 }
 
 
 void *balloc_memmove(void *p, const void *s, size_t n) {
+#if BALLOC_PTR_MD
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
 
     if (n > size)
         return NULL;
+#else
+    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
+    BALLOC_LOG_ERR("%s\n", "Define BALLOC_PTR_MD to store pointer size for safe memmove operation.");
+#endif // BALLOC_PTR_MD
 
     return memmove(p, s, n);
 }
