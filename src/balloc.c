@@ -83,7 +83,7 @@ void balloc_free(BuffAlloc *ba) {
 void balloc_free_ptr(void *p) {
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
-    memset(p-9, 0, size+9);
+    memset(ptr-9, 0, size+9);
 }
 
 
