@@ -33,14 +33,14 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
     if (!ba->buff) {
         ba->buff = malloc(ba->buff_size);
         if (!ba->buff) {
-            BALLOC_LOG_ERR("%s\n", "malloc returned NULL. Not enouph memory on device.\n");
+            BALLOC_LOG_ERR("%s\n", "malloc returned NULL. Not enough memory on device.\n");
             goto ret;
         }
         ba->end_ptr = ba->buff;
     }
 
     if ((ba->end_ptr + size) >= (ba->buff + ba->buff_size)) {
-        BALLOC_LOG_ERR("Not enouph memory on the buffer for size %zu\n", size);
+        BALLOC_LOG_ERR("Not enough memory on the buffer for size %zu\n", size);
         goto ret;
     }
 
