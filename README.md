@@ -1,4 +1,4 @@
-# Buffer Allocator
+# Fixed Buffer Memory Allocator
 
 My (First Try) impelementation of Fixed Buffer Memory Allocator in C.
 
