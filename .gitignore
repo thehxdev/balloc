@@ -1,0 +1,4 @@
+*.cache
+*.o
+a.out
+compile_flags.txt
