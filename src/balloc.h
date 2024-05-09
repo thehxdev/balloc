@@ -15,7 +15,7 @@
  */
 
 // Set this constant to 1 to enable logging
-#define BALLOC_DEBUG    1
+#define BALLOC_DEBUG    0
 
 // Store pointer metadata (it's size).
 // This will take a size of `size_t` for each pointer.
