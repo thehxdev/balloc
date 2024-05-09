@@ -17,6 +17,11 @@
 // Set this constant to 1 to enable logging
 #define BALLOC_DEBUG    0
 
+// Store pointer metadata (it's size).
+// This will take a size of `size_t` for each pointer.
+// Pointer's size is required for some functionalities.
+#define BALLOC_PTR_MD   0
+
 #define DEFAULT_BUFF_SIZE (1<<12)
 
 
@@ -57,6 +62,16 @@ void *balloc_allocate(BuffAlloc *ba, size_t size);
 void balloc_hexdump(BuffAlloc *ba);
 
 void balloc_free(BuffAlloc *ba);
+
+
+#if BALLOC_PTR_MD
+void balloc_free_ptr(void *p);
+
+void *balloc_memset(void *p, long c, size_t n);
+
+void *balloc_memmove(void *p, const void *s, size_t n);
+#endif // BALLOC_PTR_MD
+
 
 
 #endif // BALLOC_H
