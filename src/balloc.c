@@ -96,7 +96,7 @@ void *balloc_memset(void *p, long c, size_t n) {
         return NULL;
 #else
     BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
-    BALLOC_LOG_ERR("%s\n", "Define BALLOC_PTR_MD to store pointer size for safe memset operation.");
+    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memset operation.");
 #endif // BALLOC_PTR_MD
 
     return memset(p, c, n);
@@ -112,7 +112,7 @@ void *balloc_memmove(void *p, const void *s, size_t n) {
         return NULL;
 #else
     BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
-    BALLOC_LOG_ERR("%s\n", "Define BALLOC_PTR_MD to store pointer size for safe memmove operation.");
+    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memmove operation.");
 #endif // BALLOC_PTR_MD
 
     return memmove(p, s, n);
