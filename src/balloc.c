@@ -41,6 +41,7 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
     ptr = (void*)ba->end_ptr;
 
     ba->end_ptr += size;
+    // skip 2 bytes and set them to 0
     memset(ba->end_ptr, 0, BALLOC_PTR_OFFSET);
     ba->end_ptr += BALLOC_PTR_OFFSET;
 
