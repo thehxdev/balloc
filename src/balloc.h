@@ -57,18 +57,23 @@ typedef struct __buff_alloc {
  * Public API
  */
 
+// allocate memory on the buffer
 void *balloc_allocate(BuffAlloc *ba, size_t size);
 
 void balloc_hexdump(BuffAlloc *ba);
 
+// free the buffer
 void balloc_free(BuffAlloc *ba);
 
 #if BALLOC_PTR_MD
+// free one pointer that allocated on the buffer
 void balloc_free_ptr(void *p);
 #endif // BALLOC_PTR_MD
 
+// memset operation on the pointer that allocated on the buffer
 void *balloc_memset(void *p, long c, size_t n);
 
+// memmove operation on the pointer that allocated on the buffer
 void *balloc_memmove(void *p, const void *s, size_t n);
 
 
