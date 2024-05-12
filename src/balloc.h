@@ -54,7 +54,7 @@
 
 
 #define balloc_new(buff_size)   \
-    (BuffAlloc) { NULL, NULL, (buff_size) ? buff_size : DEFAULT_BUFF_SIZE }
+    ((BuffAlloc) { NULL, NULL, (buff_size) ? buff_size : DEFAULT_BUFF_SIZE })
 
 #if BALLOC_DEBUG
     #define BALLOC_LOG_ERR(format, ...) \
