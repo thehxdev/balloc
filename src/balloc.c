@@ -44,9 +44,9 @@
 #define xfree(ptr)  do { free((ptr)); (ptr) = NULL; } while (0)
 
 #if BALLOC_PTR_MD
-    #define BALLOC_PTR_OFFSET   (2)
+    #define BALLOC_PTR_OFFSET   (2U)
 #else // else BALLOC_PTR_MD
-    #define BALLOC_PTR_OFFSET   (1)
+    #define BALLOC_PTR_OFFSET   (1U)
 #endif // BALLOC_PTR_MD
 
 
@@ -59,12 +59,15 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
     void *ptr = NULL;
     ubyte *requested_size = NULL;
 
+    BALLOC_LOG_INF("allocating memory in buffer for size %zu\n", size);
     if (!ba->buff) {
+        BALLOC_LOG_INF("%s\n", "buffer is not initialized. initializing buffer");
         ba->buff = malloc(ba->buff_size);
         if (!ba->buff) {
-            BALLOC_LOG_ERR("%s\n", "malloc returned NULL. Not enough memory on device.\n");
+            BALLOC_LOG_ERR("%s\n", "malloc returned NULL. Not enough memory on device\n");
             goto ret;
         }
+        BALLOC_LOG_INF("%s\n", "syncing buffer pointer with end pointer");
         ba->end_ptr = ba->buff;
     }
 
@@ -82,6 +85,7 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
 #if BALLOC_PTR_MD
     // store new pointer's size before pointer itself
     // with one byte in between.
+    BALLOC_LOG_INF("%s\n", "storing pointer size");
     *(size_t*)ba->end_ptr = size;
     ba->end_ptr += sizeof(size_t);
     *ba->end_ptr = 0;
@@ -90,8 +94,10 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
 
     ptr = (void*)ba->end_ptr;
 
+    BALLOC_LOG_INF("adding %zu to end pointer address\n", size);
     ba->end_ptr += size;
     // skip BALLOC_PTR_OFFSET bytes and set them to 0
+    BALLOC_LOG_INF("skipping %u bytes after pointer last byte\n", BALLOC_PTR_OFFSET);
     for (i = 0; i < BALLOC_PTR_OFFSET; (i++, ba->end_ptr++))
         *ba->end_ptr = 0;
 
@@ -111,6 +117,7 @@ void balloc_hexdump(BuffAlloc *ba) {
 
 
 void balloc_free(BuffAlloc *ba) {
+    BALLOC_LOG_INF("%s\n", "deinitializing buffer");
     xfree(ba->buff);
 }
 
@@ -118,6 +125,7 @@ void balloc_free(BuffAlloc *ba) {
 void balloc_free_ptr(void *p) {
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
+    BALLOC_LOG_INF("setting all bytes on address %p with size %zu to zero\n", ptr, size);
     memset(ptr-9, 0, size+9);
 }
 
@@ -127,11 +135,13 @@ void *balloc_memset(void *p, long c, size_t n) {
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
 
-    if (n > size)
+    if (n > size) {
+        BALLOC_LOG_ERR("Could not copy %zu bytes to a pointer with %zu size\n", n, size);
         return NULL;
+    }
 #else
-    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
-    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memset operation.");
+    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer");
+    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memset operation");
 #endif // BALLOC_PTR_MD
 
     return memset(p, c, n);
@@ -143,11 +153,13 @@ void *balloc_memmove(void *p, const void *s, size_t n) {
     ubyte *ptr = (ubyte*)p;
     size_t size = *((size_t*)(ptr-9));
 
-    if (n > size)
+    if (n > size) {
+        BALLOC_LOG_ERR("Could not copy %zu bytes to a pointer with %zu size\n", n, size);
         return NULL;
+    }
 #else
-    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer.");
-    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memmove operation.");
+    BALLOC_LOG_ERR("%s\n", "UNSAFE operation. This can overwrite other data in buffer");
+    BALLOC_LOG_ERR("%s\n", "Set BALLOC_PTR_MD to 1 to store pointer size for safe memmove operation");
 #endif // BALLOC_PTR_MD
 
     return memmove(p, s, n);

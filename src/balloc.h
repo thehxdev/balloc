@@ -59,8 +59,11 @@
 #if BALLOC_DEBUG
     #define BALLOC_LOG_ERR(format, ...) \
         (void)fprintf(stderr, "[ERROR] %s: " format, __FUNCTION__, __VA_ARGS__)
+    #define BALLOC_LOG_INF(format, ...) \
+        (void)fprintf(stderr, "[INFO] %s: " format, __FUNCTION__, __VA_ARGS__)
 #else
     #define BALLOC_LOG_ERR(format, ...)
+    #define BALLOC_LOG_INF(format, ...)
 #endif //BALLOC_DEBUG
 
 
