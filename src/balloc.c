@@ -71,10 +71,10 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
         ba->end_ptr = ba->buff;
     }
 
-#if BALLOC_PTR_MD
-    requested_size = ba->end_ptr + (size + sizeof(size_t) + 1);
-#else
     requested_size = ba->end_ptr + size;
+
+#if BALLOC_PTR_MD
+    requested_size += sizeof(size_t) + 1;
 #endif // BALLOC_PTR_MD
 
     if (requested_size >= (ba->buff + ba->buff_size)) {
