@@ -119,6 +119,7 @@ void balloc_hexdump(BuffAlloc *ba) {
 void balloc_free(BuffAlloc *ba) {
     BALLOC_LOG_INF("%s\n", "deinitializing buffer");
     xfree(ba->buff);
+    ba->end_ptr = NULL;
 }
 
 
