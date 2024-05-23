@@ -44,17 +44,11 @@
 
 #define xfree(ptr)  do { free((ptr)); (ptr) = NULL; } while (0)
 
-#if BALLOC_PTR_MD
-    #define BALLOC_PTR_OFFSET   (2U)
-#else // else BALLOC_PTR_MD
-    #define BALLOC_PTR_OFFSET   (1U)
-#endif // BALLOC_PTR_MD
 
 
 /**
  * Private API
  */
-
 
 static Buff *balloc_create_buffer(size_t size) {
     BALLOC_LOG_INF("creating a new buffer with size %zu\n", size);
@@ -90,7 +84,6 @@ ret:
  * Public API
  */
 
-
 BuffAlloc balloc_new(size_t size) {
     BALLOC_LOG_INF("%s\n", "creating new buffer allocator");
     BuffAlloc alloc = (BuffAlloc) {
@@ -110,7 +103,6 @@ BuffAlloc balloc_new(size_t size) {
 
 
 void *balloc_allocate(BuffAlloc *ba, size_t size) {
-    size_t i;
     void *ptr = NULL;
     Buff *buff = ba->buffers.tail;
     ubyte *required_size = NULL;
@@ -122,10 +114,10 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
 
     required_size = ba->end_ptr + size;
 #if BALLOC_PTR_MD
-    required_size += sizeof(size_t) + 1;
+    required_size += sizeof(size_t);
 #endif // BALLOC_PTR_MD
 
-    if (required_size >= (buff->ptr + ba->buff_size)) {
+    if (required_size > (buff->ptr + ba->buff_size)) {
         buff = balloc_create_buffer(ba->buff_size);
         buff->prev = ba->buffers.tail;
         ba->buffers.tail->next = buff;
@@ -139,18 +131,11 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
     BALLOC_LOG_INF("%s\n", "storing pointer size");
     *(size_t*)ba->end_ptr = size;
     ba->end_ptr += sizeof(size_t);
-    *ba->end_ptr = 0;
-    ba->end_ptr += 1;
 #endif // BALLOC_PTR_MD
 
     ptr = (void*)ba->end_ptr;
-
     BALLOC_LOG_INF("adding %zu to end pointer address\n", size);
     ba->end_ptr += size;
-    // skip BALLOC_PTR_OFFSET bytes and set them to 0
-    BALLOC_LOG_INF("skipping %u bytes after pointer last byte\n", BALLOC_PTR_OFFSET);
-    for (i = 0; i < BALLOC_PTR_OFFSET; (i++, ba->end_ptr++))
-        *ba->end_ptr = 0;
 
     return ptr;
 }
@@ -160,7 +145,11 @@ void balloc_free(BuffAlloc *ba) {
     BALLOC_LOG_INF("%s\n", "deinitializing buffer");
     Buff *tmp = ba->buffers.head, *next;
     while (tmp) {
-        munmap(tmp, ba->buff_size);
+        if ((ba->buff_size % 4096) == 0)
+            munmap(tmp->ptr, ba->buff_size);
+        else
+            xfree(tmp->ptr);
+
         next = tmp->next;
         xfree(tmp);
         tmp = next;
@@ -170,9 +159,11 @@ void balloc_free(BuffAlloc *ba) {
 
 void balloc_free_ptr(void *p) {
     ubyte *ptr = (ubyte*)p;
-    size_t size = *((size_t*)(ptr-9));
+    size_t offset = sizeof(size_t);
+    size_t size = *((size_t*)(ptr - offset));
+
     BALLOC_LOG_INF("setting all bytes on address %p with size %zu to zero\n", ptr, size);
-    memset(ptr-9, 0, size+9);
+    memset(ptr - offset, 0, size + offset);
 }
 
 
