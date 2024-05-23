@@ -53,8 +53,8 @@
 #define DEFAULT_BUFF_SIZE (1<<12)
 
 
-#define balloc_new(buff_size)   \
-    ((BuffAlloc) { NULL, NULL, (buff_size) ? buff_size : DEFAULT_BUFF_SIZE })
+// #define balloc_new(buff_size)   \
+//     ((BuffAlloc) { { NULL, NULL }, NULL, (buff_size) ? buff_size : DEFAULT_BUFF_SIZE })
 
 #if BALLOC_DEBUG
     #define BALLOC_LOG_ERR(format, ...) \
@@ -74,8 +74,17 @@
 typedef char byte;
 typedef unsigned char ubyte;
 
+typedef struct __buff {
+    ubyte *ptr;
+    struct __buff *next;
+    struct __buff *prev;
+} Buff;
+
 typedef struct __buff_alloc {
-    ubyte *buff;
+    struct {
+        Buff *head;
+        Buff *tail;
+    } buffers;
 
     ubyte *end_ptr;
 
@@ -88,10 +97,10 @@ typedef struct __buff_alloc {
  * Public API
  */
 
+BuffAlloc balloc_new(size_t size);
+
 // allocate memory on the buffer
 void *balloc_allocate(BuffAlloc *ba, size_t size);
-
-void balloc_hexdump(BuffAlloc *ba);
 
 // free the buffer
 void balloc_free(BuffAlloc *ba);

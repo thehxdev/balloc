@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <sys/mman.h>
 #include "balloc.h"
 
 
@@ -51,35 +52,85 @@
 
 
 /**
+ * Private API
+ */
+
+
+static Buff *balloc_create_buffer(size_t size) {
+    BALLOC_LOG_INF("creating a new buffer with size %zu\n", size);
+    Buff *b = malloc(sizeof(*b));
+    if (!b)
+        goto ret;
+
+    // if buffer size if divisable by page size,
+    // use mmap for allocating memory.
+    if ((size % 4096) == 0) {
+        b->ptr = mmap(NULL,
+                      size,
+                      PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS,
+                      -1, 0);
+    } else {
+        b->ptr = malloc(size);
+    }
+
+    if (b->ptr == MAP_FAILED) {
+        BALLOC_LOG_ERR("%s\n", "mmap failed");
+        xfree(b);
+        goto ret;
+    }
+    BALLOC_LOG_INF("new buffer address: %p\n", b->ptr);
+
+ret:
+    return b;
+}
+
+
+/**
  * Public API
  */
+
+
+BuffAlloc balloc_new(size_t size) {
+    BALLOC_LOG_INF("%s\n", "creating new buffer allocator");
+    BuffAlloc alloc = (BuffAlloc) {
+        .buffers = { NULL, NULL },
+        .end_ptr = NULL,
+        .buff_size = (size) ? size : DEFAULT_BUFF_SIZE,
+    };
+
+    Buff *b = balloc_create_buffer(alloc.buff_size);
+    alloc.buffers.head = b;
+    alloc.buffers.tail = b;
+    if (b)
+        alloc.end_ptr = alloc.buffers.tail->ptr;
+
+    return alloc;
+}
+
 
 void *balloc_allocate(BuffAlloc *ba, size_t size) {
     size_t i;
     void *ptr = NULL;
-    ubyte *requested_size = NULL;
+    Buff *buff = ba->buffers.tail;
+    ubyte *required_size = NULL;
+
+    if (!buff)
+        return NULL;
 
     BALLOC_LOG_INF("allocating memory in buffer for size %zu\n", size);
-    if (!ba->buff) {
-        BALLOC_LOG_INF("%s\n", "buffer is not initialized. initializing buffer");
-        ba->buff = malloc(ba->buff_size);
-        if (!ba->buff) {
-            BALLOC_LOG_ERR("%s\n", "malloc returned NULL. Not enough memory on device\n");
-            goto ret;
-        }
-        BALLOC_LOG_INF("%s\n", "syncing buffer pointer with end pointer");
-        ba->end_ptr = ba->buff;
-    }
 
-    requested_size = ba->end_ptr + size;
-
+    required_size = ba->end_ptr + size;
 #if BALLOC_PTR_MD
-    requested_size += sizeof(size_t) + 1;
+    required_size += sizeof(size_t) + 1;
 #endif // BALLOC_PTR_MD
 
-    if (requested_size >= (ba->buff + ba->buff_size)) {
-        BALLOC_LOG_ERR("Not enough memory on the buffer for size %zu\n", size);
-        goto ret;
+    if (required_size >= (buff->ptr + ba->buff_size)) {
+        buff = balloc_create_buffer(ba->buff_size);
+        buff->prev = ba->buffers.tail;
+        ba->buffers.tail->next = buff;
+        ba->buffers.tail = buff;
+        ba->end_ptr = buff->ptr;
     }
 
 #if BALLOC_PTR_MD
@@ -101,25 +152,19 @@ void *balloc_allocate(BuffAlloc *ba, size_t size) {
     for (i = 0; i < BALLOC_PTR_OFFSET; (i++, ba->end_ptr++))
         *ba->end_ptr = 0;
 
-ret:
     return ptr;
-}
-
-
-void balloc_hexdump(BuffAlloc *ba) {
-    ubyte *tmp = ba->buff;
-    while (tmp < ba->end_ptr) {
-        printf("%x", *tmp);
-        tmp += 1;
-    }
-    putchar('\n');
 }
 
 
 void balloc_free(BuffAlloc *ba) {
     BALLOC_LOG_INF("%s\n", "deinitializing buffer");
-    xfree(ba->buff);
-    ba->end_ptr = NULL;
+    Buff *tmp = ba->buffers.head, *next;
+    while (tmp) {
+        munmap(tmp, ba->buff_size);
+        next = tmp->next;
+        xfree(tmp);
+        tmp = next;
+    }
 }
 
 
