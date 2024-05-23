@@ -1,6 +1,6 @@
 # Fixed Buffer Memory Allocator
 
-My (First Try) implementation of Fixed Buffer Memory Allocator in C.
+My implementation of Fixed Buffer Memory Allocator in C.
 
 
 ## How it works?
@@ -31,13 +31,11 @@ Default buffer size. (4096 Bytes)
 
 ---
 
-### Macros
+### Functions
 
 #### `balloc_new`
 Create and construct a new fixed buffer allocator with type `BuffAlloc`.
 
----
-
-### Functions
-
+#### Other funcitons
 Take a look at `src/balloc.h` in `Public API` section for all functions that are available to you.
+You can also read `test/test.c` file to see how to use public API and some functions that balloc provides.
