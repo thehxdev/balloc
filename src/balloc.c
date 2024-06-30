@@ -56,9 +56,9 @@ static Buff *balloc_create_buffer(size_t size) {
     if (!b)
         goto ret;
 
-    // if buffer size if divisable by page size,
+    // if buffer size is bigger than page size,
     // use mmap for allocating memory.
-    if ((size % 4096) == 0) {
+    if (size >= 4096) {
         b->ptr = mmap(NULL,
                       size,
                       PROT_READ | PROT_WRITE,
