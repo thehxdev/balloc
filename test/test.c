@@ -1,13 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include "../src/balloc.h"
 
 
 int main(void) {
-    // 0 as buffer size -> use default buffer size (4096 Bytes)
-    BuffAlloc alloc = balloc_new(0);
+    BuffAlloc alloc = balloc_new();
 
     long *xptr = (long*) balloc_allocate(&alloc, sizeof(long));
     *xptr = 20;

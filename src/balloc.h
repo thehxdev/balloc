@@ -53,9 +53,6 @@
 #define DEFAULT_BUFF_SIZE (1<<12)
 
 
-// #define balloc_new(buff_size)   \
-//     ((BuffAlloc) { { NULL, NULL }, NULL, (buff_size) ? buff_size : DEFAULT_BUFF_SIZE })
-
 #if BALLOC_DEBUG
     #define BALLOC_LOG_ERR(format, ...) \
         (void)fprintf(stderr, "[ERROR] %s: " format, __FUNCTION__, __VA_ARGS__)
@@ -97,7 +94,7 @@ typedef struct __buff_alloc {
  * Public API
  */
 
-BuffAlloc balloc_new(size_t size);
+BuffAlloc balloc_new();
 
 // allocate memory on the buffer
 void *balloc_allocate(BuffAlloc *ba, size_t size);

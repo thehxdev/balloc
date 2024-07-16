@@ -58,21 +58,17 @@ static Buff *balloc_create_buffer(size_t size) {
 
     // if buffer size is bigger than page size,
     // use mmap for allocating memory.
-    if (size >= 4096) {
-        b->ptr = mmap(NULL,
-                      size,
-                      PROT_READ | PROT_WRITE,
-                      MAP_PRIVATE | MAP_ANONYMOUS,
-                      -1, 0);
-    } else {
-        b->ptr = malloc(size);
-    }
+    b->ptr = mmap(NULL, size,
+                  PROT_READ | PROT_WRITE,
+                  MAP_PRIVATE | MAP_ANONYMOUS,
+                  -1, 0);
 
     if (b->ptr == MAP_FAILED) {
         BALLOC_LOG_ERR("%s\n", "mmap failed");
         xfree(b);
         goto ret;
     }
+
     BALLOC_LOG_INF("new buffer address: %p\n", b->ptr);
 
 ret:
@@ -84,12 +80,12 @@ ret:
  * Public API
  */
 
-BuffAlloc balloc_new(size_t size) {
+BuffAlloc balloc_new() {
     BALLOC_LOG_INF("%s\n", "creating new buffer allocator");
     BuffAlloc alloc = (BuffAlloc) {
         .buffers = { NULL, NULL },
         .end_ptr = NULL,
-        .buff_size = (size) ? size : DEFAULT_BUFF_SIZE,
+        .buff_size = DEFAULT_BUFF_SIZE,
     };
 
     Buff *b = balloc_create_buffer(alloc.buff_size);
@@ -145,11 +141,7 @@ void balloc_free(BuffAlloc *ba) {
     BALLOC_LOG_INF("%s\n", "deinitializing buffer");
     Buff *tmp = ba->buffers.head, *next;
     while (tmp) {
-        if ((ba->buff_size % 4096) == 0)
-            munmap(tmp->ptr, ba->buff_size);
-        else
-            xfree(tmp->ptr);
-
+        munmap(tmp->ptr, ba->buff_size);
         next = tmp->next;
         xfree(tmp);
         tmp = next;
